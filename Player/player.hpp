@@ -3,9 +3,10 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// Player<...> : Chess Player capable of learning (Genetical Algorithm)
+// Player<...> : Chess Player capable of learning (Genetical Aalgorithm + Score classifier algorithm (SVM))
 //
 // The chromosomes of the player are in ConditionValuationNode x (tree size) x number of domains:
+// chromosomes used by valu_weight_sum GA algorithm:
 //      std::vector<_ConditionFeature*> _conditions;
 //      std::vector<bool>               _conditions_and_or;
 //      std::vector<_ValuationFeature*> _valuations;
@@ -17,26 +18,36 @@
 
 namespace chess
 {
-    // Player (player specialized for a domain and calling its child domain players as the position requires)
+    // DomainPlayer (player specialized for a domain and calling its child domain players as the position requires)
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class DomainPlayer : public BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;
-        using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _Board    = Board<PieceID, _BoardSize>;
+        using _Move     = Move<PieceID>;
+        using _Domain   = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _DomainPlayer     = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ConditionValuationNode = ConditionValuationNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _BasePlayer = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _BasePlayer   = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _Partition    = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PlayerFactory = PlayerFactory<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
         friend class _PlayerFactory;
         friend class _Partition;
         friend class _PartitionManager;
 
+    protected:
+        PieceColor              _color_player;
+        std::string             _partition_key;
+        std::string             _domainname_key;
+        std::string             _instance_key;
+        _Domain*                _domain;
+        _ConditionValuationNode* _root;                     // The brain of the player that we evolve!
+        std::vector<_DomainPlayer*> _children_players;      // can delete/attach/detach as needed
+
     public:
-        DomainPlayer(   PieceColor color_player, const std::string& playername, uint32_t ga_instance,
+        DomainPlayer(   PieceColor color_player, const std::string& playername, 
+                        uint32_t ga_instance,   // position in a GA population
                         const std::string& partition_key, const std::string& domainname_key, const std::string& instance_key);
 
     public:
@@ -54,13 +65,15 @@ namespace chess
         std::string partition_key()     const { return _partition_key; }
         std::string domainname_key()    const { return _domainname_key; }
         std::string instance_key()      const { return _instance_key; }
-        _Domain*    domain()            const { return _domain; }
+        virtual _Domain*    domain()    const { return _domain; } 
 
         const std::string   persist_key() const;
         void                print_nodes() const;
 
         _ConditionValuationNode* get_root() { return _root; }
         virtual GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* get_game_db();
+
+        PieceColor              color_player() { return _color_player;}
 
     protected:
         TYPE_PARAM minimax(_Board& board, uint16_t depth, TYPE_PARAM alpha, TYPE_PARAM beta,
@@ -69,16 +82,9 @@ namespace chess
                             bool is_recursive_entry, char verbose, std::stringstream& verbose_stream);
 
         bool is_same_domain(const DomainPlayer* p) const;
-
-        PieceColor              _color_player;
-        std::string             _partition_key;     // partition context
-        std::string             _domainname_key;    // domain name - key part
-        std::string             _instance_key;      // domain instance - key part
-        _Domain*                _domain;
-        _ConditionValuationNode* _root;                     // The brain of the player that we evolve!
-        std::vector<_DomainPlayer*> _children_players;      // can delete/attach/detach as needed
     };
 
+    // DomainPlayer()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     ::DomainPlayer( PieceColor color_player, const std::string& playername, uint32_t ga_instance,
@@ -247,6 +253,7 @@ namespace chess
                 _Move m = board.last_history_move();
                 verbose_stream << "[" << std::to_string(m.src_x) << std::to_string(m.src_y) << std::to_string(m.dst_x) << std::to_string(m.dst_y) << "]";
             }
+            // EVAL
             return eval_position_algo(board, m, verbose, verbose_stream);
         }
 
@@ -299,11 +306,13 @@ namespace chess
             if (_domain->has_known_score_move())
             {
                 size_t ret_mv_idx;
+                // TODO: get_known_score_move should read TB if exist...
                 ExactScore sc = _domain->get_known_score_move(pos, m, ret_mv_idx);
                 if (sc != ExactScore::UNKNOWN)
                     return ret_mv_idx;
             }
         }
+        
         // classic alpha/beta minmax
         TYPE_PARAM  a = -std::numeric_limits<TYPE_PARAM>::max();    // eval is only in (0..1) currently
         TYPE_PARAM  b = std::numeric_limits<TYPE_PARAM>::max();
@@ -425,21 +434,21 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     void DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::print_nodes() const
     {
-        if (_color_player == PieceColor::W) std::cout << "W:"; 
-        else                                std::cout << "B:";
-        for (int i = 0; i < _root->weights().size(); i++)
-            std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->weights().at(i) << " ";
-        std::cout << std::endl;
+        //if (_color_player == PieceColor::W) std::cout << "W:"; 
+        //else                                std::cout << "B:";
+        //for (int i = 0; i < _root->weights().size(); i++)
+        //    std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->weights().at(i) << " ";
+        //std::cout << std::endl;
 
-        if (_root->positive_child() && _root->negative_child())
-        {
-            std::cout << "childs:";
-            for (int i = 0; i < _root->positive_child()->weights().size(); i++)
-                std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->positive_child()->weights().at(i) << " ";
-            for (int i = 0; i < _root->negative_child()->weights().size(); i++)
-                std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->negative_child()->weights().at(i) << " ";
-            std::cout << std::endl;
-        }
+        //if (_root->positive_child() && _root->negative_child())
+        //{
+        //    std::cout << "childs:";
+        //    for (int i = 0; i < _root->positive_child()->weights().size(); i++)
+        //        std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->positive_child()->weights().at(i) << " ";
+        //    for (int i = 0; i < _root->negative_child()->weights().size(); i++)
+        //        std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->negative_child()->weights().at(i) << " ";
+        //    std::cout << std::endl;
+        //}
     }
 
 };

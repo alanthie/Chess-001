@@ -1,6 +1,7 @@
 #pragma once
 //=================================================================================================
-//                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
+//                  Copyright (C) 2017 Alain Lanthier - All Rights Reserved  
+//                  License: MIT License    See LICENSE.md for the full license.
 //=================================================================================================
 //
 // Board<PieceID, _BoardSize>
@@ -33,8 +34,7 @@ namespace chess
         Board & operator=(Board&&)          = default;
         ~Board()                            = default;
 
-        // ...
-        bool legal_pos(char option = 0) const;  // 0==just check pawn rows
+        bool legal_pos(char option = 0) const;  // 0==just check pawn rows (add more option...)
 
         const uint8_t index_at(uint8_t x, uint8_t y) const { return _BoardSize * y + x; }
         const _Piece* piece_at(uint8_t x, uint8_t y) const { return _Piece::get(_cells.at(index_at(x, y))); }

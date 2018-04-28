@@ -50,14 +50,16 @@ namespace chess
         {
             // assume sorted
             std::string str_pieces;
-            if (color_to_play == PieceColor::W) str_pieces = "W_"; else str_pieces = "B_";
+            if (color_to_play == PieceColor::W) str_pieces = "W_";
+            else if (color_to_play == PieceColor::B) str_pieces = "B_";
+            else if (color_to_play == PieceColor::none) str_pieces = "";
             for (auto& vv : v) str_pieces += Piece<PieceID, _BoardSize>::to_str(vv, false); // Filesystem not case sensitive!
             return str_pieces;
         }
 
         static uint64_t _TB_MAX_SIZE;       // TB size limit for RAM
         static uint16_t _TB_MINMAX_DEPTH;   // Partial TB iterative minmax search limit
-        static uint16_t _TB_MAX_DTC;
+        static uint8_t  _TB_MAX_DTC;
         static uint64_t new_TB_setup_size(uint64_t boardsize, uint64_t N) { return std::min<uint64_t>(_TB_MAX_SIZE, TB_FULL_SIZE(boardsize, N)); }
 
     private:
@@ -86,7 +88,7 @@ namespace chess
 
     // _TB_MAX_DTC
     template <typename PieceID, typename uint8_t _BoardSize>
-    uint16_t TB_Manager<PieceID, _BoardSize>::_TB_MAX_DTC = 255;//0..255;
+    uint8_t TB_Manager<PieceID, _BoardSize>::_TB_MAX_DTC = 255;   //0..255;
 
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void TB_Manager<PieceID, _BoardSize>::clear() const
@@ -221,7 +223,8 @@ namespace chess
             { 
                 PieceSet<PieceID, _BoardSize> ps(vz[i].wset(), vz[i].bset()); ps.collapse_to_one_piece();
                 struct_tbh._t = TB_TYPE::tb_Xv0;
-                size_t ret_idx;bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
+                size_t ret_idx;
+                bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
                 if (found == false)
                 {
                     struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_Xv0, ps, childmode, option);
@@ -232,7 +235,8 @@ namespace chess
             { 
                 PieceSet<PieceID, _BoardSize> ps(vz[i].wset(), vz[i].bset()); ps.collapse_to_one_piece();
                 struct_tbh._t = TB_TYPE::tb_0vX;
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
+                size_t ret_idx; 
+                bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
                 if (found == false)
                 {
                     struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_0vX, ps, childmode, option);
@@ -242,7 +246,8 @@ namespace chess
             else if (nw > nb) // normal
             {
                 struct_tbh._t = tb_type_NM(nw, nb);
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
+                size_t ret_idx; 
+                bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
                     struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(struct_tbh._t, vz[i], childmode, option);
@@ -252,7 +257,8 @@ namespace chess
             else if (nw == nb) // promo NvN
             {
                 struct_tbh._t = tb_type_NM(nw, nb);
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
+                size_t ret_idx; 
+                bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
                     struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(struct_tbh._t, vz[i], childmode, option);
@@ -265,7 +271,8 @@ namespace chess
                 struct_tbh._t = tb_type_NM(nb, nw); // reversed
                 PieceSet<PieceID, _BoardSize> copy(vz[i].wset(), vz[i].bset());
                 PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
+                size_t ret_idx; 
+                bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
                 if (found == false)
                 {
                     struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(struct_tbh._t, r, childmode, option);
@@ -284,6 +291,7 @@ namespace chess
 
                 // sym TB
                 STRUCT_TBH<PieceID, _BoardSize> struct_tbh_sym(vz[i]);
+                // check_tbh_exist...
                 struct_tbh_sym._t = tb_type_NM(nw, nb);
                 struct_tbh_sym._nw = nw;
                 struct_tbh_sym._nb = nb;

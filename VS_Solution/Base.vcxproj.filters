@@ -4,9 +4,6 @@
     <Filter Include="Core">
       <UniqueIdentifier>{21a1b043-8d39-4ead-b4bf-fbfa35f24d75}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GA">
-      <UniqueIdentifier>{019b5365-6cd4-4c97-b014-d8d6250e3928}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Player">
       <UniqueIdentifier>{0f185f59-f346-4580-b3a0-a20f10b180f3}</UniqueIdentifier>
     </Filter>
@@ -38,6 +35,9 @@
     <Filter Include="TB">
       <UniqueIdentifier>{318dea3d-4a9a-47a1-995c-7faa623db1e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Persistence\GA">
+      <UniqueIdentifier>{019b5365-6cd4-4c97-b014-d8d6250e3928}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -55,34 +55,34 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Chromosome.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Converter.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Evolution.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Galgo.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\GeneticAlgorithm.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Parameter.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Population.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Randomize.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\random.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\galgo_example.hpp">
-      <Filter>GA</Filter>
+      <Filter>Persistence\GA</Filter>
     </ClInclude>
     <ClInclude Include="..\Domain\domain.hpp">
       <Filter>Domain</Filter>
@@ -170,6 +170,27 @@
     </ClInclude>
     <ClInclude Include="..\Tablebase\TBH_N.hpp">
       <Filter>TB</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Feature\node_changer.hpp">
+      <Filter>Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Feature\feature_algo.hpp">
+      <Filter>Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Feature\feature_algo_cfg.hpp">
+      <Filter>Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Feature\feature_algo_cond_product_boolean.hpp">
+      <Filter>Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Domain\domain_tb.hpp">
+      <Filter>Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Feature\feature_algo_valu_rvm_trainer.hpp">
+      <Filter>Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Feature\feature_algo_valu_weight_sum.hpp">
+      <Filter>Feature</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

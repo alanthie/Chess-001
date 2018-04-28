@@ -41,6 +41,8 @@ namespace chess
         TBH<PieceID, _BoardSize>* add_sym( TB_TYPE t, TBH<PieceID, _BoardSize>* ref) const;
         TBH<PieceID, _BoardSize>* find_sym(TB_TYPE t, TBH<PieceID, _BoardSize>* ref) const;
 
+        TBH<PieceID, _BoardSize>* create(const PieceSet<PieceID, _BoardSize>& ps, TBH_IO_MODE iomode, TBH_OPTION option) const;
+
     private:
         // Would be owner of TBH... unique_ptr/weak_ptr
         mutable std::map<std::string, TBH<PieceID, _BoardSize>*>  _map_tbh;
@@ -210,6 +212,43 @@ namespace chess
         return  _instance.get();
     }
 
+    // Draft...
+    template <typename PieceID, typename uint8_t _BoardSize>
+    TBH<PieceID, _BoardSize>* TBH_Manager<PieceID, _BoardSize>::create(const PieceSet<PieceID, _BoardSize>& ps, TBH_IO_MODE iomode, TBH_OPTION option) const
+    {
+        uint16_t nw;
+        uint16_t nb;
+        nw = ps.count_all_piece(PieceColor::W);
+        nb = ps.count_all_piece(PieceColor::B);
+
+        bool is_sym = ps.is_sym();
+        bool to_collapse = ps.is_collapse_to_one_piece();
+        TB_TYPE t = tb_type_NM(nw, nb);
+
+        if (to_collapse)
+        {
+            PieceSet<PieceID, _BoardSize> ps_(ps.wset(), ps.bset());
+            ps_.collapse_to_one_piece();
+            return add(t, ps_, iomode, option);
+        }
+        else if (!is_sym)
+        {
+            return add(t, ps, iomode, option);
+        }
+        else
+        {
+            // nw < nb
+            TB_TYPE t_nosym = tb_type_NM(nb, nw);
+            PieceSet<PieceID, _BoardSize> copy(ps.wset(), ps.bset());
+            PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
+            TBH<PieceID, _BoardSize>* ref = add(t_nosym, r, iomode, option);
+            if (ref != nullptr)
+            {
+                return add_sym(t, ref);
+            }
+        }
+        return nullptr;
+    }
 };
 
 #endif

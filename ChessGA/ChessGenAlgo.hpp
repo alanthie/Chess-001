@@ -45,7 +45,8 @@ namespace chess
                 std::vector<TYPE_PARAM> w;
                 for (auto& v : nodes)
                 {
-                    w = v->get_weights();
+                    //......................
+                    //w = v->get_weights();
                     i = 0;
                     for (auto& vw : w)
                     {
@@ -53,7 +54,8 @@ namespace chess
                         w[i] = vw;
                         i++;
                     }
-                    v->set_weights(w);
+                    //.................
+                    //v->set_weights(w);
                 }
             }
 
@@ -173,7 +175,8 @@ namespace chess
             std::vector<TYPE_PARAM> w;
             for (int i = 0; i < _player_terminal_nodes.size(); i++)
             {
-                w = _player_terminal_nodes[i]->get_weights();
+                //...
+                //w = _player_terminal_nodes[i]->get_weights();
                 for (int j = 0; j < w.size(); j++)
                 {
                     _lowerBound.push_back(-WEIGHT_BOUND);

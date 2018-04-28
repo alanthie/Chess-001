@@ -132,6 +132,10 @@ namespace chess
         virtual void        print() const = 0;
         virtual uint8_t     num_piece() const = 0;
 
+        virtual uint64_t    size_tb() const = 0;
+        virtual uint64_t    size_full_tb() const = 0;
+
+        virtual bool valid_index(uint64_t index, Board<PieceID, _BoardSize>& _work_board, std::vector<uint16_t>& ret_sq) const = 0;
         static void order_sq_v(std::vector<uint16_t>& sq, const std::vector<PieceID>& piecesID);
     };
 
@@ -193,7 +197,7 @@ namespace chess
         const bool                      _do_x_symmetry = true;
         const uint8_t                   _size_item = TB_size_item();
 
-        uint64_t                        _size_tb = TB_Manager<_PieceID, _BoardSize>::instance()->new_TB_setup_size(_BoardSize, NPIECE);
+        uint64_t                        _size_tb = TB_Manager<PieceID, _BoardSize>::instance()->new_TB_setup_size(_BoardSize, NPIECE);
         const uint64_t                  _size_full_tb = powN(_BoardSize*_BoardSize, NPIECE);
         bool                            _is_full_type = (_size_tb == powN(_BoardSize*_BoardSize, NPIECE)) ? true : false;
 
@@ -204,9 +208,9 @@ namespace chess
         bool                            _is_build_and_loaded;
         std::vector<bool>*              _vbits;             // 2 bit score + 1 bit marker (true/false)
         uint8_t*                        _vdtc;              // distance to conversion
-        std::map<uint64_t, uint32_t>    _vkeys;             // partial TB: list of <position indexes , index in map>
+        std::map<uint64_t, uint32_t>    _vkeys;             // partial TB: list of <position indexes , index in _vbits/_vdtc>
         std::vector<uint32_t>           _vkeys_dtc_count;   // partial TB: keep free slots for various dtc
-        std::map<uint64_t, uint32_t>    _vmarkers;          // partial TB: list of <marker positions indexes, index in map>
+        std::map<uint64_t, uint32_t>    _vmarkers;          // partial TB: list of <marker positions indexes, index in _vbits>
 
         mutable std::recursive_mutex    _mutex;
 
@@ -234,8 +238,8 @@ namespace chess
         PieceColor  color()             const { return _color; }
         uint8_t     num_piece()         const override { return _NPIECE; }
         std::vector<PieceID> piecesID() const { return _piecesID; }
-        uint64_t    size_tb()           const { return _size_tb; }
-        uint64_t    size_full_tb()      const { return _size_full_tb; }
+        uint64_t    size_tb()           const override  { return _size_tb; }
+        uint64_t    size_full_tb()      const override  { return _size_full_tb; }
         uint64_t    size_keys()         const { if (!_is_full_type) return _vkeys.size(); else return 0; }
 
         void        print_score(int n)  const;
@@ -303,7 +307,7 @@ namespace chess
             // dtc[2...255] 60%/254
             if (dtc == 0) return _vkeys_dtc_count[0] < (0.20 * _size_tb);
             else if (dtc == 1) return _vkeys_dtc_count[1] < (0.20 * _size_tb);
-            double n = (double)TB_Manager<_PieceID, _BoardSize>::instance()->_TB_MAX_DTC;
+            double n = (double)TB_Manager<PieceID, _BoardSize>::instance()->_TB_MAX_DTC;
             if (n < 3) n = 3;
             return _vkeys_dtc_count[dtc] < ((0.60/(n-2)) * _size_tb);          
         }
@@ -524,13 +528,13 @@ namespace chess
             return false;
         }
 
+        bool valid_index(uint64_t index, Board<PieceID, _BoardSize>& _work_board, std::vector<uint16_t>& ret_sq) const override;
+
     protected:
         uint64_t dim(size_t n) const { return (n > 0) ? TB_size_dim(_BoardSize) * dim(n - 1) : 1; }
 
         PieceID pieceID(uint8_t idx) { return _piecesID[idx]; }
         std::vector<uint64_t> get_index_dtc(uint8_t value_dtc, ExactScore value_sc) const;
-
-        bool valid_index(uint64_t index, Board<PieceID, _BoardSize>& _work_board, std::vector<uint16_t>& ret_sq) const;
 
         void square_at_index_vv(size_t n, uint64_t idx, std::vector<uint16_t>& sq)  const
         {
@@ -1265,7 +1269,7 @@ namespace chess
         : TablebaseBase<PieceID, _BoardSize>(), _color(c), _NPIECE(NPIECE), _is_build_and_loaded(false), _vbits(nullptr), _vdtc(nullptr)
     {
         // May not have enough RAM
-        uint64_t MAX = TB_Manager<_PieceID, _BoardSize>::instance()->new_TB_setup_size(_BoardSize, NPIECE);
+        uint64_t MAX = TB_Manager<PieceID, _BoardSize>::instance()->new_TB_setup_size(_BoardSize, NPIECE);
         try
         {
             uint64_t n = TB_size_item();
@@ -1302,7 +1306,7 @@ namespace chess
         {
             try
             {
-                _vkeys_dtc_count.assign(TB_Manager<_PieceID, _BoardSize>::instance()->_TB_MAX_DTC,0);
+                _vkeys_dtc_count.assign(TB_Manager<PieceID, _BoardSize>::instance()->_TB_MAX_DTC,0);
             }
             catch (std::exception& re)
             {

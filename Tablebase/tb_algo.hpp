@@ -14,7 +14,8 @@ namespace chess
     // DRAFT...
     template <typename PieceID, typename uint8_t _BoardSize>
     inline ExactScore minmax(Board<PieceID, _BoardSize>& board, uint16_t depth, uint8_t& ret_dtc)
-    {       
+    {   
+        using _Move = Move<PieceID>;
         std::vector<_Move> m = board.generate_moves();
         if (board.is_final(m))
         {
@@ -624,7 +625,7 @@ namespace chess
                         else
                         {
                             // Go into a wild search!
-                            child_sc[j] = iterative_minmax(*_work_board, TB_Manager<_PieceID, _BoardSize>::instance()->_TB_MINMAX_DEPTH, dtc);
+                            child_sc[j] = iterative_minmax(*_work_board, TB_Manager<PieceID, _BoardSize>::instance()->_TB_MINMAX_DEPTH, dtc);
                             child_dtc[j] = 1+dtc;
                         }
                     }
@@ -677,7 +678,7 @@ namespace chess
                             else
                             {
                                 // Try to find the score in the minmax tree
-                                child_sc[j] = iterative_minmax(*_work_board, TB_Manager<_PieceID, _BoardSize>::instance()->_TB_MINMAX_DEPTH, dtc);
+                                child_sc[j] = iterative_minmax(*_work_board, TB_Manager<PieceID, _BoardSize>::instance()->_TB_MINMAX_DEPTH, dtc);
                                 child_dtc[j] = 1+dtc;
                             }
                         }

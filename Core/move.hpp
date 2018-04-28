@@ -1,6 +1,7 @@
 #pragma once
 //=================================================================================================
-//                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
+//                  Copyright (C) 2017 Alain Lanthier - All Rights Reserved  
+//                  License: MIT License    See LICENSE.md for the full license.
 //=================================================================================================
 //
 // MoveUnit         : struct holding chess move unit direction

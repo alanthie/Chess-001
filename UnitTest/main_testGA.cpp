@@ -63,15 +63,15 @@ int main(int argc, char* argv[])
                 {
                     // PlayerW+PlayerB [one conditional branch, all valu features]
                     player_config = { chess::CondFeatureSelection::one_random, chess::ValuFeatureSelection::all, true };
-                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playW, player_config);
-                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playB, player_config);
+                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRootNode(playW, player_config);
+                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRootNode(playB, player_config);
                 }
                 else
                 {
                     // PlayerW+PlayerB [no conditional branch, , all valu features]
                     player_config = { chess::CondFeatureSelection::none, chess::ValuFeatureSelection::all, true };
-                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playW, player_config);
-                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playB, player_config);
+                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRootNode(playW, player_config);
+                    chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRootNode(playB, player_config);
                 }
 
                 // Persist the players

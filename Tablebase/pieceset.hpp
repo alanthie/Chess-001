@@ -59,6 +59,9 @@ namespace chess
         void make_all_child_set() const;
         const PieceSet<PieceID, _BoardSize>& all_child_set_at(size_t idx) const {return _all_child_set[idx];}
 
+        bool PieceSet<PieceID, _BoardSize>::is_sym() const;
+        bool PieceSet<PieceID, _BoardSize>::is_collapse_to_one_piece() const;
+
     protected:
         bool _is_valid;
         std::vector<std::pair<PieceID, uint8_t>>                _wset;          // white pieces and count
@@ -67,7 +70,7 @@ namespace chess
         std::vector<std::vector<std::pair<PieceID, uint8_t>>>   _bchildren;     // all black combination with 1 piece less + promo (not both)
         mutable std::vector<PieceSet<PieceID, _BoardSize>>      _all_child_set; 
 
-        std::map<size_t, STRUCT_PIECE_RANK<PieceID, _BoardSize>> _map_piece_rank;
+        mutable std::map<size_t, STRUCT_PIECE_RANK<PieceID, _BoardSize>> _map_piece_rank;
 
         bool validate();
         void remove_one_piecename(PieceColor c, PieceName n);
@@ -758,6 +761,47 @@ namespace chess
         return _map_piece_rank;
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool PieceSet<PieceID, _BoardSize>::is_sym() const
+    {
+        uint16_t nw;
+        uint16_t nb;
+        uint16_t nwK;
+        uint16_t nbK;
+        nw = this->count_all_piece(PieceColor::W);
+        nb = this->count_all_piece(PieceColor::B);
+        nwK = this->count_one_piecename(PieceColor::W, PieceName::K);
+        nbK = this->count_one_piecename(PieceColor::B, PieceName::K);
+
+        bool is_sym = false;
+        if ((nw < nb) && (nw > 0) && (nb > 0) && (nbK > 0) && (nwK > 0))
+        {
+            is_sym = true;
+        }
+        return is_sym;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool PieceSet<PieceID, _BoardSize>::is_collapse_to_one_piece() const
+    {
+        uint16_t nw;
+        uint16_t nb;
+        uint16_t nwK;
+        uint16_t nbK;
+        nw = this->count_all_piece(PieceColor::W);
+        nb = this->count_all_piece(PieceColor::B);
+        nwK = this->count_one_piecename(PieceColor::W, PieceName::K);
+        nbK = this->count_one_piecename(PieceColor::B, PieceName::K);
+
+        if ((nw < nb) && (nw > 0) && (nb > 0) && (nbK > 0) && (nwK > 0))
+        {
+        }
+        else if ((nb == 0) || (nbK == 0) || (nw == 0) || (nwK == 0))
+        {
+            return true;            
+        }
+        return false;
+    }
 };
 #endif
 

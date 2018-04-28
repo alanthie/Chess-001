@@ -1,6 +1,7 @@
 #pragma once
 //=================================================================================================
-//                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
+//                  Copyright (C) 2017 Alain Lanthier - All Rights Reserved  
+//                  License: MIT License    See LICENSE.md for the full license.
 //=================================================================================================
 //
 // Piece<PieceID, _BoardSize>
@@ -50,6 +51,7 @@ namespace chess
         static const PieceID get_id(PieceName _name, PieceColor _c);
         static const _Piece* get(PieceID id);
         static void init();
+        static void clear(); // test...
         static const std::string to_str(PieceID id, bool with_space = true);
         static const std::string to_str2(PieceID id);
         static const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id);
@@ -203,6 +205,16 @@ namespace chess
     inline const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id)
     {
         return (uint8_t)id; //...
+    }
+
+    // clear()
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline void Piece<PieceID, _BoardSize>::clear()
+    {
+        _keyToID.clear();
+        pieces.clear();
+        pieces.shrink_to_fit();
+        is_init = false;
     }
 
     // init()

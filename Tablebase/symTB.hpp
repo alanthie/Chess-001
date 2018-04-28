@@ -52,6 +52,13 @@ namespace chess
         void print() const          override {}
         uint8_t num_piece() const   override { return _refTB->num_piece(); }
 
+        uint64_t    size_tb()           const override { return _refTB->size_tb(); }
+        uint64_t    size_full_tb()      const override { return _refTB->size_full_tb(); }
+        bool        valid_index(uint64_t index, Board<PieceID, _BoardSize>& _work_board, std::vector<uint16_t>& ret_sq) const override
+        {
+            return _refTB->valid_index(index, _work_board, ret_sq); //...
+        }
+
         ExactScore score_v(const std::vector<uint16_t>& sq) const override   
         { 
             return reverse_score(_refTB->score_v(reverse_order_sq(sq, false)));

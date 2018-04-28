@@ -43,7 +43,6 @@ namespace chess
             {
                 // Not in memory
                 _tb_B = new TB_N<PieceID, _BoardSize, NPIECE>(v, PieceColor::B);
-
                 TB_Manager<PieceID, _BoardSize>::instance()->add_N(ps.name(PieceColor::B), _tb_B);
             } 
             else 

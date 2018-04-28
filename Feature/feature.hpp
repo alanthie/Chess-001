@@ -8,7 +8,12 @@
 //
 // Model
 //  Fc = conditional term = [Fcond() and/or Fcond() and/or ...]
-//  Fv =   valuation term = Sigmoid([Fval()*w + Fval()*w + ...]) range(0 to 1) 0==Black_winning 1==white_winning
+//  Fv =   valuation term = Scoring classifier/predictor algorithm
+//                          weight_sum = Sigmoid([Fval()*w + Fval()*w + ...]) range(0 to 1) 0==Black_winning 1==white_winning
+//                          binary classifier: rvm_trainer
+//                          binary classifier: svm
+//                          multi class classifier: one_vs_all_trainer
+//                          ...
 //
 //
 #ifndef _AL_CHESS_FEATURE_FEATURE_HPP
@@ -26,9 +31,10 @@ namespace chess
 
     public:
         ConditionFeature() : BaseFeature(FeatureType::condition)  { }
-        virtual ~ConditionFeature() {};
-        virtual bool check(const _Board& position, const std::vector<_Move>& m) const = 0;
-        CondFeatureName name() { return _name; }
+        ~ConditionFeature() {};
+
+        virtual bool check(const _Board& position, const std::vector<_Move>& m) const = 0; // check on/off on board position
+        CondFeatureName name() const { return _name; }
 
     protected:
         CondFeatureName _name;
@@ -48,7 +54,7 @@ namespace chess
             _name = CondFeatureName::eConditionFeature_isOppositeKinCheck;
             set_classtype( _FeatureManager::instance()->get_cond_feature_name(CondFeatureName::eConditionFeature_isOppositeKinCheck) );
         }
-        virtual ~ConditionFeature_isOppositeKinCheck() {};
+        ~ConditionFeature_isOppositeKinCheck() {};
         virtual bool check(const _Board& position, const std::vector<_Move>& m) const override
         {
             size_t ret_mv;
@@ -66,9 +72,10 @@ namespace chess
 
     public:
         ValuationFeature() : BaseFeature(FeatureType::valuation), _PARAM_NBIT(PARAM_NBIT){ }
-        virtual ~ValuationFeature() {};
-        virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const = 0;
-        ValuFeatureName name() { return _name; }
+        ~ValuationFeature() {};
+
+        virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const = 0; // compute value on a board position
+        ValuFeatureName name() const { return _name; }
 
     protected:
         size_t  _PARAM_NBIT;
@@ -100,17 +107,15 @@ namespace chess
             }
         }
 
-        virtual ~ValuationFeature_numberMoveForPiece() 
+        ~ValuationFeature_numberMoveForPiece() 
         {
             _arg_index_value.clear();
         }
 
         virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const override
         {
-            if (_c == position.get_color())
-                return (TYPE_PARAM)position.cnt_move(_p, _c, m);
-            else
-                return (TYPE_PARAM)position.cnt_move_oppo(_p, _c, m);
+            if (_c == position.get_color()) return (TYPE_PARAM)position.cnt_move(_p, _c, m);
+            else                            return (TYPE_PARAM)position.cnt_move_oppo(_p, _c, m);
         }
 
         PieceName  piecename()  { return _p; }
@@ -148,7 +153,7 @@ namespace chess
             else set_classtype_argument("B");
         }
 
-        virtual ~ValuationFeature_countCaptureKing()
+        ~ValuationFeature_countCaptureKing()
         {
         }
 
@@ -180,7 +185,7 @@ namespace chess
             set_classtype_argument(std::to_string(id));
         }
 
-        virtual ~ValuationFeature_onEdge()
+        ~ValuationFeature_onEdge()
         {
         }
 
@@ -213,7 +218,7 @@ namespace chess
             set_classtype_argument("");
         }
 
-        virtual ~ValuationFeature_distKK()
+        ~ValuationFeature_distKK()
         {
         }
 

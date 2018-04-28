@@ -1,6 +1,7 @@
 #pragma once
 //=================================================================================================
-//                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
+//                  Copyright (C) 2017 Alain Lanthier - All Rights Reserved  
+//                  License: MIT License    See LICENSE.md for the full license.
 //=================================================================================================
 //
 //
@@ -17,6 +18,10 @@ namespace chess
 
     std::string  toNULLSTR(const std::string& s) { return (s.size() == 0) ? "NullSTR" : s; }
     void         fromNULLSTR(std::string& s)     { if (s == "NullSTR") s = ""; }
+
+    std::random_device  rnd_dev;                    // uniformly - distributed integer random number generator
+    std::mt19937_64     rnd_generator(rnd_dev());   // Mersenne Twister 19937 pseudo-random number generator [0, pow(2,64))
+    std::uniform_real_distribution<double> uniform_double(0, 1);    // uniform random probability in range [0,1)     
 
     void reverse_sq(uint16_t& sq, uint8_t _BoardSize)
     {
@@ -115,6 +120,16 @@ namespace chess
         if (t == 1) return true;
         return false;
     }
+    std::string bool_to_string(bool c)
+    {
+        if (c) return "1";
+        return "0";
+    }
+    bool string_to_bool(std::string t)
+    {
+        if (t == "1") return true;
+        return false;
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     struct sorter_less_pieces
@@ -144,5 +159,6 @@ namespace chess
             }
         }
     };
+
 }
 #endif

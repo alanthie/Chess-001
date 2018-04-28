@@ -199,7 +199,7 @@ namespace galgo
           ptr->Mutation(newpop[i+1]);   
           // evaluating new chromosomes
           newpop[i]->evaluate(false);
-          newpop[i+1]->evaluate(false);
+          newpop[i + 1]->evaluate(false);
        } 
     }
 

@@ -2,7 +2,6 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-//
 // Generating/reading some TB (chess endgame tablebase) with boardsize of 6x6
 //
 //
@@ -31,6 +30,23 @@ int main(int argc, char* argv[])
     // SPACE/TIME constraints for TB generation
     TB_Manager<_PieceID, _BoardSize>::instance()->_TB_MAX_SIZE      = 100000;      // Max number positions for partial TB (so it fit in RAM)
     TB_Manager<_PieceID, _BoardSize>::instance()->_TB_MINMAX_DEPTH  = 1;           // Max minmax_search_depth for partial TB
+
+    FeatureAlgoConfig<uint8_t, 6, double, 16>  cfg;
+    FeatureValuAlgo_rvm_trainer<uint8_t, 6, double, 16> a(cfg);
+
+    // TEST TB partition
+    {
+        const std::string TestPartition = "TB_N4_B6";
+        chess::Partition<uint8_t, 6, double, 16>* p_tb = chess::PartitionManager<uint8_t, 6, double, 16>::instance()->load_partition(TestPartition);
+        if (p_tb == nullptr)
+        {
+            // Not found: create partition and save
+            chess::PartitionManager<uint8_t, 6, double, 16>::instance()->make_tb_partition(4);
+            p_tb = chess::PartitionManager<uint8_t, 6, double, 16>::instance()->find_partition(TestPartition);
+            assert(p_tb != nullptr);
+            p_tb->save();
+        }
+    }
 
     bool DO_BUILD = true; 
 
