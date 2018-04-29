@@ -1,0 +1,176 @@
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class Partition
+    {
+        std::string                         _name;
+        PartitionType                       _partition_type;
+        std::map<std::string, _Domain*>     _domains;  // on heap - owner (TODO std::unique_ptr...)
+	}
+
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class Domain 
+	{
+	    std::string             _partition_key;             // Identification 3 keys
+        std::string             _domainname_key;
+        std::string             _instance_key;    
+        std::vector<_Domain*>   _children;
+        _DomainPlayer*          _attached_domain_playerW;
+        _DomainPlayer*          _attached_domain_playerB;
+        std::string             _gamedb_key;
+        _GameDB*                _gameDB;
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class DomainTB : public Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
+    {
+		_PieceSet   		_ps;
+        mutable PieceColor  _tb_color;
+        mutable uint64_t    _next_position_index;               // iterative position index in TB(_tb_color)
+        mutable TablebaseBase<PieceID, _BoardSize>* _TB_W;      // owner is TB_Manager
+        mutable TablebaseBase<PieceID, _BoardSize>* _TB_B;
+        mutable _Board*     _work_board;
+        std::map<size_t, _STRUCT_PIECE_RANK>& _map_piece_rank;
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize>
+    class TablebaseBase
+    {
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    class Tablebase : public TablebaseBase<PieceID, _BoardSize>
+    {
+		const bool                      _do_x_symmetry = true;
+        const uint8_t                   _size_item = TB_size_item();
+
+        uint64_t                        _size_tb = TB_Manager<PieceID, _BoardSize>::instance()->new_TB_setup_size(_BoardSize, NPIECE);
+        const uint64_t                  _size_full_tb = powN(_BoardSize*_BoardSize, NPIECE);
+        bool                            _is_full_type = (_size_tb == powN(_BoardSize*_BoardSize, NPIECE)) ? true : false;
+
+        const PieceColor                _color;             // Side to play
+        const uint8_t                   _NPIECE;            // KQvK is 3 pieces
+        std::vector<PieceID>            _piecesID;
+        std::vector<const _Piece*>      _pieces;
+        bool                            _is_build_and_loaded;
+        std::vector<bool>*              _vbits;             // 2 bit score + 1 bit marker (true/false)
+        uint8_t*                        _vdtc;              // distance to conversion
+        std::map<uint64_t, uint32_t>    _vkeys;             // partial TB: list of <position indexes , index in _vbits/_vdtc>
+        std::vector<uint32_t>           _vkeys_dtc_count;   // partial TB: keep free slots for various dtc
+        std::map<uint64_t, uint32_t>    _vmarkers;          // partial TB: list of <marker positions indexes, index in _vbits>
+
+        mutable std::recursive_mutex    _mutex;
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class DomainPlayer : public BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
+    {
+		PieceColor              _color_player;
+        std::string             _partition_key;
+        std::string             _domainname_key;
+        std::string             _instance_key;
+        _Domain*                _domain;
+        _ConditionValuationNode* _root;                     // The brain of the player that we evolve!
+        std::vector<_DomainPlayer*> _children_players;      // can delete/attach/detach as needed
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class GameDB
+    {
+        uint8_t         _status;        // ok==0, bad=-1
+        _Domain*        _domain;
+        std::string     _db_keyname;
+        
+        // domain signature
+        std::string _partition_key;
+        std::string _domainname_key;
+        std::string _instance_key;
+        
+        uint64_t                _size;
+        std::vector<uint64_t>   _vector_index_rec;
+        uint64_t                _pos_rec_file = 0;	
+		
+		bool        store_game(const _GameDB_Record& rec, size_t& ret_index);
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class ConditionValuationNode
+    {
+	    bool                            _is_positive_node;
+        ConditionValuationNode*         _parent;
+        ConditionValuationNode*         _positive_child;
+        ConditionValuationNode*         _negative_child;                // Miror node - reverse the condition value
+        ConditionValuationNode*         _link_to_mirror;
+        std::string                     _persist_key;
+
+        bool                            _use_current_cond_algo;         // else use _test_cond_algo
+        bool                            _use_current_valu_algo;         // else use _test_valu_algo
+        _FeatureCondAlgo*               _current_cond_algo;
+        _FeatureValuAlgo*               _current_valu_algo;
+        _FeatureCondAlgo*               _test_cond_algo;                // not persisting - for training/testing
+        _FeatureValuAlgo*               _test_valu_algo;                // not persisting - for training/testing
+
+        // Fcond(0)/Fvalu(0) + !Fcond(0)/Fvalu(1) 
+        std::list<_FeatureAlgoConfig>   _history_positive_child_cond_algo_cfg;
+        std::list<_FeatureAlgoConfig>   _history_negative_child_cond_algo_cfg;
+        std::list<_FeatureAlgoConfig>   _history_positive_child_valu_algo_cfg;
+        std::list<_FeatureAlgoConfig>   _history_negative_child_valu_algo_cfg;
+
+        // Fcond(0)/Fvalu(0)
+        std::list<_FeatureAlgoConfig>   _history_cond_algo_cfg;
+        std::list<_FeatureAlgoConfig>   _history_valu_algo_cfg;
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    struct FeatureAlgoConfig
+    {
+        mutable std::string             _persist_key;
+        FeatureAlgoStatus               _status; 
+        bool                            _is_cond;                       // cond or valu
+        FeatureBasedAlgoName            _name;
+        std::string                     _param_key_signature;
+        std::vector<std::string>        _cond_primitive_features;       // list of primitive features used by the algo
+        std::vector<std::string>        _valu_primitive_features;
+        double                          _train_dataset_average_error;   // clasifier performance (error) after algo build()
+        double                          _test_dataset_average_error;
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class FeatureAlgo
+    {
+        _FeatureAlgoConfig     _cfg;
+		virtual bool prepare(   _DomainPlayer& player, _ConditionValuationNode* node, size_t max_size_dataset) = 0;
+        virtual bool train(     _DomainPlayer& player, _ConditionValuationNode* node, size_t max_size_dataset, char verbose) = 0;
+        virtual bool test(      _DomainPlayer& player, _ConditionValuationNode* node, size_t max_size_dataset) = 0;
+        virtual bool compare(   _DomainPlayer& player, _ConditionValuationNode* node, size_t max_size_dataset) = 0;
+        virtual void cleanup(   _DomainPlayer& player, _ConditionValuationNode* node, size_t max_size_dataset) = 0;
+	}
+	
+	template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class CondValuNodeChanger
+    {
+        // Possible change:
+        //  1 terminal node change Fvalu() - 1 test algo to train
+        //  1 terminal node expand into 2 new childs :  Fcond(0)/Fvalu(0) + !Fcond(0)/Fvalu(1)  - 3 test algo to train simultaneously!
+        //
+		
+        // try_expand_terminal_node_cond stuff - not owner
+        _ConditionValuationNode*    node_parent = nullptr;
+        _ConditionValuationNode*    node_positive_child = nullptr;
+        _ConditionValuationNode*    node_negative_child = nullptr;
+        _FeatureCondAlgo*           algo_cond_positive_child = nullptr;
+        _FeatureValuAlgo*           algo_valu_positive_child = nullptr;
+        _FeatureValuAlgo*           algo_valu_negative_child = nullptr;
+    
+        // Try changing a player terminal node with 2 new child nodes[Fcond(0)/Fvalu(0) + !Fcond(0)/Fvalu(1)]
+        bool try_expand_terminal_node_cond(_DomainPlayer& player, size_t max_size_dataset, bool& ret_node_changed);
+
+        // Try changing a player terminal node[Fcond(0)]
+        bool try_change_terminal_node_cond(_DomainPlayer& player, size_t max_size_dataset, bool commit_undo, bool& ret_node_changed);
+
+        // Try changing a player terminal node[Fvalu(0)]
+        bool try_change_terminal_node_valu(_DomainPlayer& player, size_t max_size_dataset, bool commit_undo, bool& ret_node_changed);
+		
+        _ConditionValuationNode*    suggest_next_node_for_change(_DomainPlayer& player, bool changing_cond);
+        _FeatureAlgo*               suggest_algo_for_change(_DomainPlayer& player, _ConditionValuationNode* node, bool changing_cond);
+	}
+	
+	
