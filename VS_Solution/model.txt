@@ -168,9 +168,6 @@
 
         // Try changing a player terminal node[Fvalu(0)]
         bool try_change_terminal_node_valu(_DomainPlayer& player, size_t max_size_dataset, bool commit_undo, bool& ret_node_changed);
-		
-        _ConditionValuationNode*    suggest_next_node_for_change(_DomainPlayer& player, bool changing_cond);
-        _FeatureAlgo*               suggest_algo_for_change(_DomainPlayer& player, _ConditionValuationNode* node, bool changing_cond);
 	}
 	
 	
